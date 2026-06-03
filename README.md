@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Ronald-PH/avapt/refs/heads/main/static/img/avapt.png?token=GHSAT0AAAAAAD45GC4BMGJ7BE5GRT3H4PPO2RACS6Q" alt="aVAPT Banner" />
+<img src="https://raw.githubusercontent.com/Ronald-PH/avapt/refs/heads/main/static/img/avapt.png?token=GHSAT0AAAAAAD45GC4AJ3DMUPRK6QHNXICQ2RADRRQ" alt="aVAPT Banner" />
 
 **AI-Powered Automated Vulnerability Assessment and Penetration Testing**
 
