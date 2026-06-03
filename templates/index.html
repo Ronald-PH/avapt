@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aVAPT — AI Security Scanner</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <a href="/" class="logo" style="text-decoration:none">
+      <svg width="800" height="62" viewBox="0 0 1670 128" role="img" aria-label="avapt logo">
+        <!-- shield -->
+        <path d="M56 6 L96 22 L96 68 Q96 92 56 106 Q16 92 16 68 L16 22 Z"
+              fill="#0f1219" stroke="#00d4ff" stroke-width="2"/>
+        <path d="M56 14 L88 28 L88 68 Q88 88 56 100 Q24 88 24 68 L24 28 Z"
+              fill="none" stroke="#1e2533" stroke-width="0.8"/>
+        <!-- circuit trace clipped to shield -->
+        <clipPath id="sc">
+          <path d="M56 6 L96 22 L96 68 Q96 92 56 106 Q16 92 16 68 L16 22 Z"/>
+        </clipPath>
+        <g clip-path="url(#sc)">
+          <polyline points="24,58 35,58 41,46 51,46 57,58 63,58 69,46 79,46 85,58 88,58"
+                    fill="none" stroke="#00d4ff" stroke-width="1.6"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="41" cy="46" r="2.5" fill="#00d4ff"/>
+          <circle cx="57" cy="58" r="2.5" fill="#00d4ff"/>
+          <circle cx="69" cy="46" r="2.5" fill="#00d4ff"/>
+          <circle cx="56" cy="80" r="5"  fill="#bf5fff" opacity="0.9"/>
+          <circle cx="56" cy="80" r="9"  fill="none" stroke="#bf5fff" stroke-width="0.8" opacity="0.4"/>
+        </g>
+        <text x="110" y="60"
+              font-family="'JetBrains Mono','Fira Code','Consolas',monospace"
+              font-size="44" font-weight="700" fill="#c9d1e0" letter-spacing="-1">aV</text>
+        <text x="156" y="60"
+              font-family="'JetBrains Mono','Fira Code','Consolas',monospace"
+              font-size="44" font-weight="700" fill="#00d4ff" letter-spacing="-1">APT</text>
+        <text x="112" y="82"
+              font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+              font-size="11" fill="#5a6478" letter-spacing="1.5">AI SECURITY SCANNER</text>
+      </svg>
+    </a>
+  </div>
+  <nav>
+    <a href="/" class="nav-active">Scanner</a>
+    <a href="/api/jobs" target="_blank">Jobs API</a>
+  </nav>
+</header>
+
+<main class="center-layout">
+
+  <!-- ── hero ── -->
+  <div class="hero">
+    <h1>AI-Powered Security Scanner</h1>
+    <p>Full semantic analysis via local Ollama — no regex, no patterns.<br>
+       The entire source of each file is sent to the AI for deep reasoning.</p>
+  </div>
+
+  <!-- ── scan form ── -->
+  <div class="card scan-card">
+    <h2>New Scan</h2>
+
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Prompt</label>
+        <textarea type="text" id="prompt"
+               autocomplete="off">You are a senior application security engineer performing a full manual code review.
+You will be given the COMPLETE source code of a file with line numbers.
+
+YOUR TASK:
+Thoroughly read and understand the entire file, then identify every real,
+exploitable security vulnerability present in the code this used Laravel Framework.
+
+ANALYSIS METHODOLOGY:
+1. Understand what the code does — its purpose, framework, and patterns used.
+2. Trace ALL data flows: where does external/user input enter, how is it
+   transformed, and does it reach any dangerous sink unsanitized?
+3. Evaluate authentication, authorization, session management, and access controls.
+4. Look for business logic flaws, not just technical injection points.
+5. Consider chained vulnerabilities — can finding A enable finding B?
+6. Factor in the language and framework implicit protections, but do not
+   assume protection exists unless you can see it in the code.
+7. Be precise with line numbers — point to the exact vulnerable line(s).
+
+VULNERABILITY CLASSES TO DETECT (not limited to):
+- Injection: SQL, NoSQL, LDAP, OS Command, Code, Template, XPath
+- XSS: Reflected, Stored, DOM-based
+- SSRF, CSRF, XXE, Open Redirect
+- Authentication Bypass, Broken Auth, Weak Credentials, Hardcoded Secrets
+- Authorization Flaws, IDOR, Privilege Escalation, Mass Assignment
+- Insecure Deserialization, Type Confusion
+- Path Traversal, LFI, RFI
+- JWT Weaknesses, Weak Cryptography, Insecure Randomness
+- Race Conditions, Business Logic Flaws
+- Information Disclosure, Debug Exposure
+- Memory Safety (buffer overflow, use-after-free) for C/C++/Rust
+- Any other OWASP Top 10 / CWE-relevant issue
+
+RULES:
+- Only report REAL vulnerabilities with clear evidence in the code.
+- Do NOT flag theoretical issues with no reachable attack path.
+- Do NOT fabricate CVE IDs — set cve_id to null always.
+- Do NOT report the same issue twice.
+- Minimise false positives — if unsure, set confidence to "low".
+- Be specific: name the vulnerable function, variable, and exact line.
+
+OUTPUT FORMAT:
+Respond ONLY with a valid JSON array. No prose, no markdown, no code fences.
+If the file has NO vulnerabilities, return exactly: []
+
+JSON schema for each finding:
+{
+  "type": "<vulnerability class>",
+  "severity": "<critical|high|medium|low>",
+  "severity_score": <float 1.0-10.0>,
+  "confidence": "<high|medium|low>",
+  "cwe": "<CWE-NNN>",
+  "capec": "<CAPEC-NNN or empty string>",
+  "cve_id": null,
+  "from_line": <int>,
+  "to_line": <int>,
+  "explanation": "<root cause and why this is exploitable>",
+  "attack_path": {
+    "entry_point": "<where attacker input enters>",
+    "prerequisites": ["<condition>"],
+    "impact": "<what attacker achieves>",
+    "likelihood": "<High|Medium|Low>"
+  },
+  "remediation": "<specific actionable fix>"
+}</textarea>
+        <span class="hint">Directory or single file to scan</span>
+      </div>
+
+      <div class="form-group full">
+        <label>Target Path</label>
+        <input type="text" id="target"
+               placeholder="e.g. /var/www/html"
+               autocomplete="off">
+        <span class="hint">Directory or single file to scan</span>
+      </div>
+
+      <div class="form-group">
+        <label>Ollama URL</label>
+        <input type="text" id="ollama_url" value="{{ default_url }}"
+               oninput="debounceLoadModels()">
+      </div>
+
+      <div class="form-group">
+        <label>Model</label>
+        <select id="model">
+          {% for m in models %}
+            <option value="{{ m }}" {% if m == default_model %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+          {% if not models %}
+            <option value="{{ default_model }}">{{ default_model }}</option>
+          {% endif %}
+        </select>
+        <span class="hint" id="model-status">
+          {% if models %}
+            {{ models|length }} model(s) available
+          {% else %}
+            Ollama not detected — enter URL and models will load
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Parallel Workers</label>
+        <input type="number" id="workers" value="3" min="1" max="10">
+        <span class="hint">Concurrent AI requests</span>
+      </div>
+
+      <div class="form-group">
+        <label>Export Format</label>
+        <select id="export_format">
+          <option value="html">HTML</option>
+          <option value="json">JSON</option>
+          <option value="pdf" {% if not has_pdf %}disabled{% endif %}>
+            PDF {% if not has_pdf %}(pip install reportlab){% endif %}
+          </option>
+          <option value="all">All (HTML + JSON + PDF)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-scan" id="btn-scan" onclick="startScan()">
+      <span id="btn-label">Run AI Scan</span>
+    </button>
+  </div>
+
+  <!-- ── progress ── -->
+  <div class="card progress-card hidden" id="progress-card">
+    <div class="progress-header">
+      <div class="ai-dot"></div>
+      <span id="progress-title">Scanning...</span>
+      <span id="progress-counts" class="muted"></span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <p class="progress-file muted" id="progress-file"></p>
+  </div>
+
+  <!-- ── past jobs ── -->
+  <div class="card" id="jobs-card" style="display:none">
+    <h2>Recent Scans</h2>
+    <table id="jobs-table">
+      <thead><tr>
+        <th>Job ID</th><th>Status</th><th>Findings</th><th>Started</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="jobs-body"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  <span>aVAPT v{{ version }}</span>
+  <span>Pure AI · Local Ollama · No telemetry</span>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

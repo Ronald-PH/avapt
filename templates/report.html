@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AVAPT Report — {{ result.meta.scan_root }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/report.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <a href="/" class="logo" style="text-decoration:none">
+      <svg width="800" height="62" viewBox="0 0 1670 128" role="img" aria-label="avapt logo">
+        <!-- shield -->
+        <path d="M56 6 L96 22 L96 68 Q96 92 56 106 Q16 92 16 68 L16 22 Z"
+              fill="#0f1219" stroke="#00d4ff" stroke-width="2"/>
+        <path d="M56 14 L88 28 L88 68 Q88 88 56 100 Q24 88 24 68 L24 28 Z"
+              fill="none" stroke="#1e2533" stroke-width="0.8"/>
+        <!-- circuit trace clipped to shield -->
+        <clipPath id="sc">
+          <path d="M56 6 L96 22 L96 68 Q96 92 56 106 Q16 92 16 68 L16 22 Z"/>
+        </clipPath>
+        <g clip-path="url(#sc)">
+          <polyline points="24,58 35,58 41,46 51,46 57,58 63,58 69,46 79,46 85,58 88,58"
+                    fill="none" stroke="#00d4ff" stroke-width="1.6"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="41" cy="46" r="2.5" fill="#00d4ff"/>
+          <circle cx="57" cy="58" r="2.5" fill="#00d4ff"/>
+          <circle cx="69" cy="46" r="2.5" fill="#00d4ff"/>
+          <circle cx="56" cy="80" r="5"  fill="#bf5fff" opacity="0.9"/>
+          <circle cx="56" cy="80" r="9"  fill="none" stroke="#bf5fff" stroke-width="0.8" opacity="0.4"/>
+        </g>
+        <text x="110" y="60"
+              font-family="'JetBrains Mono','Fira Code','Consolas',monospace"
+              font-size="44" font-weight="700" fill="#c9d1e0" letter-spacing="-1">aV</text>
+        <text x="156" y="60"
+              font-family="'JetBrains Mono','Fira Code','Consolas',monospace"
+              font-size="44" font-weight="700" fill="#00d4ff" letter-spacing="-1">APT</text>
+        <text x="112" y="82"
+              font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+              font-size="11" fill="#5a6478" letter-spacing="1.5">AI SECURITY SCANNER</text>
+      </svg>
+    </a>
+  </div>
+  <div class="hdr-right">
+    <span class="model-tag">{{ result.meta.ai_model }}</span>
+    {% set risk = "CRITICAL" if result.summary.critical > 0
+                  else "HIGH" if result.summary.high > 0
+                  else "MEDIUM" if result.summary.medium > 0
+                  else "LOW" %}
+    <span class="risk-pill risk-{{ risk }}">{{ risk }}</span>
+    <div class="download-group">
+      <a class="btn-dl btn-html" href="/download/html/{{ job_id }}">HTML</a>
+      <a class="btn-dl btn-json" href="/download/json/{{ job_id }}">JSON</a>
+      {% if has_pdf %}
+      <a class="btn-dl btn-pdf"  href="/download/pdf/{{ job_id }}">PDF</a>
+      {% endif %}
+    </div>
+    <a href="/" class="btn-back">New Scan</a>
+  </div>
+</header>
+
+<main>
+  <!-- meta strip -->
+  <div class="meta-strip">
+    <div class="mi"><span class="mi-l">Target</span>      <span class="mi-v">{{ result.meta.scan_root }}</span></div>
+    <div class="mi"><span class="mi-l">Timestamp</span>   <span class="mi-v">{{ result.meta.timestamp }}</span></div>
+    <div class="mi"><span class="mi-l">Files</span>        <span class="mi-v">{{ result.meta.files_scanned }}</span></div>
+    <div class="mi"><span class="mi-l">Code Files</span>  <span class="mi-v">{{ result.meta.code_files }}</span></div>
+    <div class="mi"><span class="mi-l">Languages</span>   <span class="mi-v">{{ result.meta.languages | join(', ') or 'N/A' }}</span></div>
+    <div class="mi"><span class="mi-l">Model</span>        <span class="mi-v">{{ result.meta.ai_model }}</span></div>
+    <div class="mi"><span class="mi-l">Findings</span>    <span class="mi-v">{{ result.findings | length }}</span></div>
+  </div>
+
+  <!-- cards -->
+  <div class="cards">
+    <div class="card cc"><div class="card-n">{{ result.summary.critical }}</div><div class="card-l">Critical</div></div>
+    <div class="card ch"><div class="card-n">{{ result.summary.high }}</div><div class="card-l">High</div></div>
+    <div class="card cm"><div class="card-n">{{ result.summary.medium }}</div><div class="card-l">Medium</div></div>
+    <div class="card cl"><div class="card-n">{{ result.summary.low }}</div><div class="card-l">Low</div></div>
+  </div>
+
+  <!-- source strip -->
+  <div class="src-strip">
+    <div class="ss"><span class="ss-n ss-ai">{{ result.source_counts.get('ai', 0) }}</span><span class="ss-lbl">AI Findings</span></div>
+    <div class="ss"><span class="ss-n ss-dep">{{ result.source_counts.get('dependency', 0) }}</span><span class="ss-lbl">Dependency CVEs</span></div>
+  </div>
+
+  <!-- severity bars -->
+  <section>
+    <h2>Severity Distribution</h2>
+    {% set total = result.findings | length %}
+    {% for sev, cls in [('critical','crit'),('high','high'),('medium','med'),('low','low')] %}
+    {% set count = result.summary[sev] %}
+    {% set pct = ((count / total * 100) | round | int) if total else 0 %}
+    <div class="bar-row">
+      <span class="bar-label">{{ sev.title() }}</span>
+      <div class="bar-track"><div class="bar-fill bc-{{ cls }}" style="width:{{ pct }}%"></div></div>
+      <span class="bar-count bc-{{ cls }}">{{ count }}</span>
+    </div>
+    {% endfor %}
+  </section>
+
+  <!-- executive summary -->
+  <section>
+    <h2>Executive Summary</h2>
+    <div class="summary-box">
+      <p>Assessment of <strong>{{ result.meta.scan_root }}</strong> using
+      <strong style="color:var(--ai)">{{ result.meta.ai_model }}</strong>.
+      {{ result.meta.code_files }} code file(s)
+      ({{ result.meta.languages | join(', ') or 'unknown' }}) were analysed in full
+      — the complete source sent to the AI for semantic reasoning.</p>
+      <br>
+      <p>Overall risk: <strong class="risk-pill risk-{{ risk }}">{{ risk }}</strong> &mdash;
+      {{ total }} total findings
+      ({{ result.summary.critical }} critical,
+       {{ result.summary.high }} high,
+       {{ result.summary.medium }} medium,
+       {{ result.summary.low }} low).
+      {% if risk in ('CRITICAL','HIGH') %}Immediate remediation required before deployment.
+      {% else %}Review and address findings in priority order.{% endif %}</p>
+    </div>
+  </section>
+
+  <!-- findings table -->
+  <section>
+    <h2>Detailed Findings</h2>
+    <div class="filters">
+      <button class="fb active" onclick="filterSev('all',this)">All ({{ total }})</button>
+      <button class="fb" onclick="filterSev('critical',this)">Critical ({{ result.summary.critical }})</button>
+      <button class="fb" onclick="filterSev('high',this)">High ({{ result.summary.high }})</button>
+      <button class="fb" onclick="filterSev('medium',this)">Medium ({{ result.summary.medium }})</button>
+      <button class="fb" onclick="filterSev('low',this)">Low ({{ result.summary.low }})</button>
+      <button class="fb fb-ai" onclick="filterSrc('ai',this)">AI Only</button>
+      <button class="fb" onclick="filterSrc('dependency',this)">Deps Only</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Vulnerability</th><th>Severity</th><th>Score</th>
+          <th>File</th><th>CWE</th><th>CVE</th><th>Confidence</th><th>Source</th>
+        </tr></thead>
+        <tbody>
+          {% for f in result.findings %}
+          {% set uid = "v" ~ loop.index0 %}
+          {% set src = f.get('source','ai') %}
+          <tr onclick="toggle('{{ uid }}')" class="vuln-row sev-{{ f.severity }}">
+            <td>{{ f.type }}</td>
+            <td><span class="badge sev-bg-{{ f.severity }}">{{ f.severity.upper() }}</span></td>
+            <td class="score">{{ f.severity_score }}</td>
+            <td class="filepath" title="{{ f.file }}">{{ f.file | basename }}</td>
+            <td class="mono">{{ f.cwe or '' }}</td>
+            <td class="mono">{{ f.cve_id or '-' }}</td>
+            <td class="conf">{{ f.confidence or '' }}</td>
+            <td><span class="src-badge src-{{ src }}">{{ 'AI' if src == 'ai' else 'DEP' }}</span></td>
+          </tr>
+          <tr id="{{ uid }}" class="detail-row">
+            <td colspan="8"><div class="detail-inner">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>Location</h4>
+                  <p><strong>File:</strong><br><code>{{ f.file }}</code></p>
+                  <p><strong>Lines:</strong> {{ f.location.from_line }} – {{ f.location.to_line }}</p>
+                  <p><strong>Language:</strong> {{ f.code.language }}</p>
+                </div>
+                <div class="detail-section">
+                  <h4>Explanation</h4>
+                  <p>{{ f.explanation }}</p>
+                </div>
+                <div class="detail-section">
+                  <h4>Attack Path</h4>
+                  <p><strong>Entry:</strong> {{ f.attack_path.entry_point }}</p>
+                  <p><strong>Impact:</strong> {{ f.attack_path.impact }}</p>
+                  <p><strong>Likelihood:</strong> {{ f.attack_path.likelihood }}</p>
+                  {% if f.attack_path.prerequisites %}
+                  <ul>{% for p in f.attack_path.prerequisites %}<li>{{ p }}</li>{% endfor %}</ul>
+                  {% endif %}
+                </div>
+                <div class="detail-section">
+                  <h4>Remediation</h4>
+                  <p>{{ f.remediation }}</p>
+                </div>
+              </div>
+              <div class="code-block">
+                <div class="code-header">
+                  <span>{{ f.code.language }}</span>
+                  <span>Line {{ f.location.from_line }}</span>
+                </div>
+                <pre><code>{{ f.code.snippet }}</code></pre>
+              </div>
+            </div></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>avapt v{{ version }} &mdash; {{ result.meta.ai_model }}</span>
+  <span>{{ result.meta.timestamp }}</span>
+</footer>
+
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
+</body>
+</html>

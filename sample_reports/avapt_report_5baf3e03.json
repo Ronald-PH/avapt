@@ -1,0 +1,635 @@
+{
+  "meta": {
+    "tool": "avapt",
+    "version": "1.0.0",
+    "scan_root": "D:\\test",
+    "timestamp": "2026-06-03T10:58:07.192661+00:00",
+    "files_scanned": 1,
+    "code_files": 1,
+    "languages": [
+      "PHP"
+    ],
+    "ai_model": "deepseek-r1:7b",
+    "ollama_url": "http://localhost:11434"
+  },
+  "summary": {
+    "critical": 1,
+    "high": 15,
+    "medium": 4,
+    "low": 1
+  },
+  "source_counts": {
+    "ai": 21
+  },
+  "findings": [
+    {
+      "type": "Dynamic Function Call",
+      "severity": "critical",
+      "severity_score": 9.0,
+      "confidence": "medium",
+      "cwe": "CWE-13",
+      "capec": "Arbitrary Code Execution",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 1,
+        "to_line": 1
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "<?php"
+      },
+      "attack_path": {
+        "entry_point": "$_GET['func']",
+        "prerequisites": [
+          "($_GET['func'] is a malicious function)"
+        ],
+        "impact": "Arbitrary code execution on the server side",
+        "likelihood": "High"
+      },
+      "explanation": "",
+      "remediation": "Sanitize $_GET['func'] to only allow predefined functions or validate its contents.",
+      "source": "ai"
+    },
+    {
+      "type": "Command Injection",
+      "severity": "high",
+      "severity_score": 8.0,
+      "confidence": "medium",
+      "cwe": "CAPEC-025",
+      "capec": "Arbitrary Command Execution",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 81,
+        "to_line": 81
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    shell_exec(\"grep \" . $user_input . \" /var/log/auth.log\");"
+      },
+      "attack_path": {
+        "entry_point": "User input via $user_input",
+        "prerequisites": [
+          "shelling out command"
+        ],
+        "impact": "Arbitrary command execution by attacker",
+        "likelihood": "High"
+      },
+      "explanation": "The `shell_exec` function is used to execute arbitrary commands based on user input.",
+      "remediation": "Avoid using `shell_exec` and use parameterized queries instead.",
+      "source": "ai"
+    },
+    {
+      "type": "XSS - Echoed User Input",
+      "severity": "high",
+      "severity_score": 8.0,
+      "confidence": "medium",
+      "cwe": "XSS",
+      "capec": "Information Disclosure",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 72,
+        "to_line": 72
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    echo \"<input type='text' value='\" . $user_input . \"'>\";"
+      },
+      "attack_path": {
+        "entry_point": "Echo statement in line 72",
+        "prerequisites": [
+          "Unescaped user input"
+        ],
+        "impact": "Information disclosure by attacker",
+        "likelihood": "High"
+      },
+      "explanation": "User input is echoed without proper escaping, allowing XSS attacks.",
+      "remediation": "Escape HTML characters and use proper sanitization.",
+      "source": "ai"
+    },
+    {
+      "type": "SQL Injection",
+      "severity": "high",
+      "severity_score": 8.0,
+      "confidence": "medium",
+      "cwe": "SQL Injection",
+      "capec": "Information Disclosure",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 56,
+        "to_line": 56
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $result = $conn->query($sql);"
+      },
+      "attack_path": {
+        "entry_point": "SQL query on line 56",
+        "prerequisites": [
+          "Hardcoded WHERE clause"
+        ],
+        "impact": "Arbitrary database queries by attacker",
+        "likelihood": "High"
+      },
+      "explanation": "The WHERE clause in SQL query uses a hardcoded value, allowing arbitrary queries.",
+      "remediation": "Use parameterized queries and bind parameters.",
+      "source": "ai"
+    },
+    {
+      "type": "File Inclusion - Command Injection",
+      "severity": "high",
+      "severity_score": 8.0,
+      "confidence": "medium",
+      "cwe": "Arbitrary Command Execution",
+      "capec": "Arbitrary Command Execution",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 82,
+        "to_line": 83
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    exec(\"ls -la \" . $file_name);\n    passthru(\"cat \" . $file_name);"
+      },
+      "attack_path": {
+        "entry_point": "User input via $file_name",
+        "prerequisites": [
+          "Unescaped user input"
+        ],
+        "impact": "Arbitrary command execution by attacker",
+        "likelihood": "High"
+      },
+      "explanation": "The `exec` and `passthru` functions execute shell commands based on user input.",
+      "remediation": "Avoid using `exec` and `passthru`, use parameterized queries instead.",
+      "source": "ai"
+    },
+    {
+      "type": "XSS",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-289",
+      "capec": "Cross-Site XML Injection",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 117,
+        "to_line": 118
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $xml = simplexml_load_string($user_input);\n    $dom = new DOMDocument();"
+      },
+      "attack_path": {
+        "entry_point": "User-controlled input passed to simplexml_load_string",
+        "prerequisites": [
+          "Untrusted XML data"
+        ],
+        "impact": "Exposes user input as raw XML content that could be manipulated by attackers.",
+        "likelihood": "High"
+      },
+      "explanation": "The code uses simplexml_load_string and DOMDocument to parse user input, which can lead to XSS vulnerabilities.",
+      "remediation": "Sanitize the user input before parsing and use proper escaping.",
+      "source": "ai"
+    },
+    {
+      "type": "SQL Injection",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-246",
+      "capec": "Insecure Multi-Statement Query",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 190,
+        "to_line": 190
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $conn->multi_query(\"SELECT * FROM users; \" . $_GET['sql2']);"
+      },
+      "attack_path": {
+        "entry_point": "User-controlled SQL statements in multi_query",
+        "prerequisites": [
+          "Untrusted SQL input"
+        ],
+        "impact": "Attacker can execute arbitrary SQL commands.",
+        "likelihood": "High"
+      },
+      "explanation": "The code uses mysqli::multi_query with user-controlled SQL queries, increasing the risk of SQL Injection.",
+      "remediation": "Use prepared statements and escape user input.",
+      "source": "ai"
+    },
+    {
+      "type": "CSQI",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-127",
+      "capec": "Cross-Site Query Injection",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 126,
+        "to_line": 127
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $collection = (new MongoDB\\Client)->test->users;\n    $result = $collection->find(['username' => $user_input]);"
+      },
+      "attack_path": {
+        "entry_point": "User-controlled query string",
+        "prerequisites": [
+          "Untrusted query parameters"
+        ],
+        "impact": "Attacker can inject malicious queries into the database.",
+        "likelihood": "High"
+      },
+      "explanation": "The code uses a query parameter in the MongoDB find method, which can lead to Cross-Site Query Injection.",
+      "remediation": "Sanitize and escape all user input when using it in SQL queries.",
+      "source": "ai"
+    },
+    {
+      "type": "PHP Injection",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-237",
+      "capec": "Cross-Site PHP Injection",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 130,
+        "to_line": 131
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $twig = new Twig\\Environment(new Twig\\Loader\\ArrayLoader());\n    echo $twig->render(\"Hello {{ name }}\", ['name' => $user_input]);"
+      },
+      "attack_path": {
+        "entry_point": "User-controlled variable passed to render_template",
+        "prerequisites": [
+          "Untrusted variables"
+        ],
+        "impact": "Attacker can inject malicious PHP code into web pages.",
+        "likelihood": "High"
+      },
+      "explanation": "The code uses a user-controlled variable in the render_template method, which can lead to Cross-Site PHP Injection.",
+      "remediation": "Sanitize and escape all user input.",
+      "source": "ai"
+    },
+    {
+      "type": "Missing CSRF Protection",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-315",
+      "capec": "Cross-Site Request Forgery",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 170,
+        "to_line": 173
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    // Missing CSRF token\n    if ($_POST['action'] == 'delete_user') {\n        $conn->query(\"DELETE FROM users WHERE id = \" . $_POST['user_id']);\n    }"
+      },
+      "attack_path": {
+        "entry_point": "Form submission without CSRF tokens",
+        "prerequisites": [
+          "Untrusted form data"
+        ],
+        "impact": "Attacker can manipulate web pages by forging requests from different domains.",
+        "likelihood": "High"
+      },
+      "explanation": "The code does not implement CSRF protection when submitting form data, making it vulnerable to CSRF attacks.",
+      "remediation": "Implement CSRF protection in all form submissions.",
+      "source": "ai"
+    },
+    {
+      "type": "Code Injection via eval",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-254",
+      "capec": "Eval Command Injection",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 102,
+        "to_line": 102
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $calc_result = calculate($user_input);"
+      },
+      "attack_path": {
+        "entry_point": "eval() function",
+        "prerequisites": [
+          "Untrusted code in eval"
+        ],
+        "impact": "Attacker can inject arbitrary commands into the application.",
+        "likelihood": "High"
+      },
+      "explanation": "The code uses eval to execute PHP statements, which can lead to Code Injection attacks if user-controlled code is executed.",
+      "remediation": "Avoid using eval and use prepared statements instead.",
+      "source": "ai"
+    },
+    {
+      "type": "Object Injection",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-259",
+      "capec": "Object Injection",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 105,
+        "to_line": 108
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $unserialized_data = processData($serialized);\n\n    // PHP Object Injection\n    $object = unserialize(base64_decode($serialized));"
+      },
+      "attack_path": {
+        "entry_point": "Untrusted data passed to unserialize",
+        "prerequisites": [
+          "Untrusted serialized data"
+        ],
+        "impact": "Attacker can inject malicious object properties into the application.",
+        "likelihood": "High"
+      },
+      "explanation": "The code uses unserialize to create objects from user-controlled data, which can lead to Object Injection attacks.",
+      "remediation": "Sanitize and escape all user-controlled data.",
+      "source": "ai"
+    },
+    {
+      "type": "MailInjection",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-267",
+      "capec": "Email Injection",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 137,
+        "to_line": 137
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    mail(\"admin@example.com\", \"Subject\", $user_input, \"From: \" . $user_input);"
+      },
+      "attack_path": {
+        "entry_point": "User-controlled email body and subject",
+        "prerequisites": [
+          "Untrusted email content"
+        ],
+        "impact": "Attacker can send unsolicited emails with malicious content.",
+        "likelihood": "High"
+      },
+      "explanation": "The code sends emails with user-controlled content, which can lead to Email Injection attacks.",
+      "remediation": "Do not send emails from untrusted sources.",
+      "source": "ai"
+    },
+    {
+      "type": "File Upload Vulnerability",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-279",
+      "capec": "File Upload Without Validation",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 140,
+        "to_line": 142
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    if ($_FILES['upload']['error'] == UPLOAD_ERR_OK) {\n        move_uploaded_file($_FILES['upload']['tmp_name'], \"/uploads/\" . $_FILES['upload']['name']);\n    }"
+      },
+      "attack_path": {
+        "entry_point": "$_FILES['upload']['name'] variable",
+        "prerequisites": [
+          "Untrusted file names"
+        ],
+        "impact": "Attacker can rename files to anything they want.",
+        "likelihood": "High"
+      },
+      "explanation": "The code allows file uploads without proper validation, increasing the risk of malicious file inclusion.",
+      "remediation": "Validate and sanitize file names before processing.",
+      "source": "ai"
+    },
+    {
+      "type": "File Deletion Vulnerability",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-17",
+      "capec": "File Destruction",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 1,
+        "to_line": 1
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "<?php"
+      },
+      "attack_path": {
+        "entry_point": "$_GET['file_to_delete']",
+        "prerequisites": [
+          "($_GET['file_to_delete'] contains malicious filenames)"
+        ],
+        "impact": "Deletes potentially harmful files",
+        "likelihood": "High"
+      },
+      "explanation": "",
+      "remediation": "Sanitize $_GET['file_to_delete'] to prevent deletion of unauthorized files.",
+      "source": "ai"
+    },
+    {
+      "type": "Directory Listing",
+      "severity": "high",
+      "severity_score": 7.5,
+      "confidence": "medium",
+      "cwe": "CWE-12",
+      "capec": "Directory Enumeration",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 1,
+        "to_line": 1
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "<?php"
+      },
+      "attack_path": {
+        "entry_point": "$_GET['list']",
+        "prerequisites": [
+          "($_GET['list'] is 'true')"
+        ],
+        "impact": "Enables directory enumeration",
+        "likelihood": "High"
+      },
+      "explanation": "",
+      "remediation": "Sanitize $_GET['list'] to prevent directory listing.",
+      "source": "ai"
+    },
+    {
+      "type": "Insecure Randomness",
+      "severity": "medium",
+      "severity_score": 5.0,
+      "confidence": "medium",
+      "cwe": "CWE-358",
+      "capec": "Weak Random Number Generation",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 149,
+        "to_line": 150
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $reset_token = rand(100000, 999999);\n    $password = mt_rand();"
+      },
+      "attack_path": {
+        "entry_point": "rand() and mt_rand() functions",
+        "prerequisites": [
+          "Unpredictability of tokens"
+        ],
+        "impact": "Predictable tokens can lead to replay attacks or brute force attempts.",
+        "likelihood": "Medium"
+      },
+      "explanation": "The code generates weak random numbers for token and password creation, which can be predictable.",
+      "remediation": "Use a cryptographically secure random number generator.",
+      "source": "ai"
+    },
+    {
+      "type": "Process Information Exposure",
+      "severity": "medium",
+      "severity_score": 5.0,
+      "confidence": "medium",
+      "cwe": "CWE-345",
+      "capec": "Exposure of Process Information",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 153,
+        "to_line": 155
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    if (isset($_GET['info'])) {\n        phpinfo();\n    }"
+      },
+      "attack_path": {
+        "entry_point": "phpinfo() function",
+        "prerequisites": [
+          "Presence of 'info' parameter"
+        ],
+        "impact": "Attacker can gain access to sensitive system information.",
+        "likelihood": "Medium"
+      },
+      "explanation": "The code calls phpinfo() when the 'info' parameter is present in GET requests, exposing process information.",
+      "remediation": "Do not call phpinfo() when processing GET requests.",
+      "source": "ai"
+    },
+    {
+      "type": "Race Condition",
+      "severity": "medium",
+      "severity_score": 5.0,
+      "confidence": "medium",
+      "cwe": "CWE-279",
+      "capec": "File Locking Race Condition",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 176,
+        "to_line": 180
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    $file_lock = fopen(\"/tmp/counter.txt\", \"r+\");\n    $count = fread($file_lock, filesize(\"/tmp/counter.txt\"));\n    $count++;\n    file_put_contents(\"/tmp/counter.txt\", $count);\n"
+      },
+      "attack_path": {
+        "entry_point": "Forking a PHP process",
+        "prerequisites": [
+          "File lock conflict"
+        ],
+        "impact": "Race condition may allow unauthorized access or data corruption.",
+        "likelihood": "Medium"
+      },
+      "explanation": "The code uses file locking with read/write permissions, which can lead to race conditions if another process accesses the same file.",
+      "remediation": "Use proper locking mechanisms and handle file locks carefully.",
+      "source": "ai"
+    },
+    {
+      "type": "Insecure File Permissions",
+      "severity": "medium",
+      "severity_score": 5.0,
+      "confidence": "medium",
+      "cwe": "CWE-163",
+      "capec": "File Overwrite Vulnerability",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 187,
+        "to_line": 187
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    chmod(\"/var/www/config.inc.php\", 0777);"
+      },
+      "attack_path": {
+        "entry_point": "Chmod command",
+        "prerequisites": [
+          "File permissions"
+        ],
+        "impact": "Attacker can overwrite important system files or directories.",
+        "likelihood": "Medium"
+      },
+      "explanation": "The code uses chmod with 0777, which may not cover all necessary files and increases the risk of file overwrite.",
+      "remediation": "Use more granular and specific file permissions.",
+      "source": "ai"
+    },
+    {
+      "type": "Hardcoded Password Check",
+      "severity": "low",
+      "severity_score": 2.5,
+      "confidence": "medium",
+      "cwe": "CWE-349",
+      "capec": "Hardcoded Password Validation",
+      "cve_id": null,
+      "file": "D:\\test\\index.php",
+      "location": {
+        "from_line": 182,
+        "to_line": 184
+      },
+      "code": {
+        "language": "PHP",
+        "snippet": "    if ($_POST['password'] == 'admin123') {\n        echo \"Access granted\";\n    }"
+      },
+      "attack_path": {
+        "entry_point": "Password check",
+        "prerequisites": [
+          "Hardcoded password"
+        ],
+        "impact": "Attacker can easily gain access by providing a hardcoded password.",
+        "likelihood": "Low"
+      },
+      "explanation": "The code checks the password against 'admin123' without proper authentication, making it easy for attackers to bypass.",
+      "remediation": "Remove hardcoded passwords and implement proper authentication.",
+      "source": "ai"
+    }
+  ]
+}
