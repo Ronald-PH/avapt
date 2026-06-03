@@ -144,11 +144,11 @@ pip install reportlab
 
 ## Usage
 
-### Web UI (recommended)
+### Web UI
 
 ```bash
 # Start the Flask server
-python web/app.py
+python app.py
 
 # Open in browser
 http://localhost:5000
@@ -162,13 +162,6 @@ The dashboard lets you:
 - Watch live scan progress file-by-file
 - View the interactive report in-browser
 - Download as HTML, JSON, or PDF
-
-### CLI
-
-```bash
-# Basic usage
-python app.py
-```
 
 ## Reports
 
