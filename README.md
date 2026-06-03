@@ -188,7 +188,7 @@ Machine-readable output for CI pipelines, SIEM ingestion, or custom tooling:
 {
   "meta": {
     "tool": "aVAPT",
-    "version": "3.1.0",
+    "version": "1.0.0",
     "scan_root": "/var/www/html",
     "timestamp": "2026-06-02T10:00:00+00:00",
     "files_scanned": 42,
