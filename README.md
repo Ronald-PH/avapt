@@ -10,7 +10,37 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Ronald--PH-181717?style=flat-square&logo=github)](https://github.com/Ronald-PH)
 
-_Pure semantic AI analysis — no regex patterns, no rule files, no false-positive noise._
+*Pure semantic AI analysis — no regex patterns, no rule files, no false-positive noise.*
+
+</div>
+
+---
+
+## Project Preview
+
+<div align="center">
+
+### Web Dashboard Interface
+
+<img src="https://raw.githubusercontent.com/Ronald-PH/avapt/refs/heads/main/sample_reports/images/main-page.png" alt="aVAPT Dashboard" width="800" />
+
+*Main dashboard showing scan configuration and live progress tracking*
+
+</div>
+
+### Report Formats
+
+aVAPT generates comprehensive reports in three formats, each suited for different workflows:
+
+| Format | Best For | Output  |
+|--------|----------|---------|
+| **HTML** | Browser-based review, interactive filtering, executive presentations | <a href="https://raw.githubusercontent.com/Ronald-PH/avapt/refs/heads/main/sample_reports/images/avapt_html_report.png" alt="HTML Report Preview">View</a> |
+| **JSON** | CI/CD pipelines, SIEM integration, custom automation | <a href="https://raw.githubusercontent.com/Ronald-PH/avapt/refs/heads/main/sample_reports/images/avapt_json_report.png" alt="JSON Format Preview">View</a> |
+| **PDF** | Documentation, offline distribution, client deliverables | <a href="https://raw.githubusercontent.com/Ronald-PH/avapt/refs/heads/main/sample_reports/images/avapt_json_report.png" alt="PDF Report Preview">View</a> |
+
+<div>
+
+*Click to expand screenshots — examples from actual aVAPT scans*
 
 </div>
 
@@ -44,18 +74,18 @@ Everything runs on your machine. No cloud, no telemetry, no API keys.
 
 The AI is instructed to identify (but is not limited to):
 
-| Category      | Examples                                                                        |
-| ------------- | ------------------------------------------------------------------------------- |
-| Injection     | SQL, NoSQL, LDAP, OS Command, Code, Template, XPath                             |
-| Client-side   | XSS (Reflected, Stored, DOM), Open Redirect, CSRF                               |
-| Server-side   | SSRF, XXE, Path Traversal, LFI, RFI                                             |
+| Category | Examples |
+|---|---|
+| Injection | SQL, NoSQL, LDAP, OS Command, Code, Template, XPath |
+| Client-side | XSS (Reflected, Stored, DOM), Open Redirect, CSRF |
+| Server-side | SSRF, XXE, Path Traversal, LFI, RFI |
 | Auth & Access | Authentication Bypass, Broken Auth, IDOR, Privilege Escalation, Mass Assignment |
-| Cryptography  | JWT Weaknesses, Weak Algorithms (MD5/SHA1/DES), Insecure Randomness             |
-| Secrets       | Hardcoded Credentials, API Keys, Tokens                                         |
-| Logic         | Business Logic Flaws, Race Conditions, Type Confusion                           |
-| Memory Safety | Buffer Overflow, Use-After-Free (C/C++/Rust)                                    |
-| Dependencies  | Known CVEs in npm and pip packages                                              |
-| Misc          | Insecure Deserialization, Information Disclosure, Debug Exposure                |
+| Cryptography | JWT Weaknesses, Weak Algorithms (MD5/SHA1/DES), Insecure Randomness |
+| Secrets | Hardcoded Credentials, API Keys, Tokens |
+| Logic | Business Logic Flaws, Race Conditions, Type Confusion |
+| Memory Safety | Buffer Overflow, Use-After-Free (C/C++/Rust) |
+| Dependencies | Known CVEs in npm and pip packages |
+| Misc | Insecure Deserialization, Information Disclosure, Debug Exposure |
 
 ---
 
@@ -76,7 +106,7 @@ avapt/
 │   ├── report_html.py        # Self-contained HTML report generator
 │   └── report_pdf.py         # PDF report generator (requires reportlab)
 │
-├── templates/
+├── templates/  
 │   ├── index.html            # Scanner dashboard (scan form + live progress)
 │   └── report.html           # Report viewer with filterable findings table
 │
@@ -155,7 +185,6 @@ http://localhost:5000
 ```
 
 The dashboard lets you:
-
 - Enter a custom prompt
 - Enter a target path (directory or single file)
 - Select your Ollama URL and model
@@ -229,14 +258,12 @@ Machine-readable output for CI pipelines, SIEM ingestion, or custom tooling:
 ### PDF Report
 
 A professionally formatted A4 document with:
-
 - Dark-themed cover with scan metadata
 - Risk summary cards
 - Full findings table
 - Per-finding detail pages with explanation, attack path, remediation, and code snippet
 
 Requires `reportlab`:
-
 ```bash
 pip install reportlab
 ```
@@ -247,17 +274,16 @@ pip install reportlab
 
 The Flask web server exposes a simple API for automation:
 
-| Method | Endpoint                   | Description                        |
-| ------ | -------------------------- | ---------------------------------- |
-| `POST` | `/scan`                    | Start a scan. Returns `{ job_id }` |
-| `GET`  | `/job/<job_id>`            | Poll job status and progress       |
-| `GET`  | `/report/<job_id>`         | View HTML report in browser        |
-| `GET`  | `/download/html/<job_id>`  | Download HTML report               |
-| `GET`  | `/download/json/<job_id>`  | Download JSON report               |
-| `GET`  | `/download/pdf/<job_id>`   | Download PDF report                |
-| `GET`  | `/download/sarif/<job_id>` | Download PDF report                |
-| `GET`  | `/api/models?url=`         | List available Ollama models       |
-| `GET`  | `/api/jobs`                | List all scan jobs                 |
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/scan` | Start a scan. Returns `{ job_id }` |
+| `GET` | `/job/<job_id>` | Poll job status and progress |
+| `GET` | `/report/<job_id>` | View HTML report in browser |
+| `GET` | `/download/html/<job_id>` | Download HTML report |
+| `GET` | `/download/json/<job_id>` | Download JSON report |
+| `GET` | `/download/pdf/<job_id>` | Download PDF report |
+| `GET` | `/api/models?url=` | List available Ollama models |
+| `GET` | `/api/jobs` | List all scan jobs |
 
 **Example — trigger a scan via curl:**
 
@@ -281,14 +307,14 @@ curl -o report.json http://localhost:5000/download/json/abc123...
 
 ## Recommended Models
 
-| Model                       | Pull command                            | Notes                                             |
-| --------------------------- | --------------------------------------- | ------------------------------------------------- |
-| `deepseek-coder`            | `ollama pull deepseek-coder`            | Code vulnerability detection & payload generation |
-| `FenkoHQ/Foundation-Sec-8B` | `ollama pull FenkoHQ/Foundation-Sec-8B` | CVE correlation & exploit logic                   |
-| `deepseek-r1`               | `ollama pull deepseek-r1`               | Complex attack path chaining                      |
-| `mistral`                   | `ollama pull mistral`                   | Fast high-volume scanning                         |
-| `llama3`                    | `ollama pull llama3`                    | General fallback reasoning                        |
-| `codellama`                 | `ollama pull FenkoHQ/Foundation-Sec-8B` | Legacy/backup only                                |
+| Model | Pull command | Notes |
+|---|---|---|
+| `deepseek-coder` | `ollama pull deepseek-coder` | Code vulnerability detection & payload generation |
+| `FenkoHQ/Foundation-Sec-8B` | `ollama pull FenkoHQ/Foundation-Sec-8B` | CVE correlation & exploit logic |
+| `deepseek-r1` | `ollama pull deepseek-r1` | Complex attack path chaining |
+| `mistral` | `ollama pull mistral` | Fast high-volume scanning |
+| `llama3` | `ollama pull llama3` | General fallback reasoning |
+| `codellama` | `ollama pull FenkoHQ/Foundation-Sec-8B` | Legacy/backup only |
 
 For best results on large PHP/Laravel or Node.js codebases, `deepseek-r1` or `deepseek-coder` are recommended.
 
@@ -394,7 +420,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Pull requests welcome.
+Pull requests welcome. 
 
 → [github.com/Ronald-PH/avapt](https://github.com/Ronald-PH/avapt)
 
@@ -405,5 +431,4 @@ Pull requests welcome.
 Built with Python · Powered by Ollama · Runs 100% locally
 
 ---
-
 </div>
