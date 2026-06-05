@@ -173,14 +173,33 @@ JSON schema for each finding:
       </div>
 
       <div class="form-group">
+        <label>Scan Profile</label>
+        <select id="profile">
+          {% for key, cfg in profiles.items() %}
+            <option value="{{ key }}" {% if key == default_profile %}selected{% endif %}>{{ cfg.label }}</option>
+          {% endfor %}
+        </select>
+        <span class="hint">Fast skips low-signal files; Deep enables OSV</span>
+      </div>
+
+      <div class="form-group full">
+        <label>Baseline JSON</label>
+        <input type="text" id="baseline"
+               placeholder="Optional path to accepted finding fingerprints"
+               autocomplete="off">
+        <span class="hint">Suppress findings already accepted in a previous report</span>
+      </div>
+
+      <div class="form-group">
         <label>Export Format</label>
         <select id="export_format">
           <option value="html">HTML</option>
           <option value="json">JSON</option>
+          <option value="sarif">SARIF</option>
           <option value="pdf" {% if not has_pdf %}disabled{% endif %}>
             PDF {% if not has_pdf %}(pip install reportlab){% endif %}
           </option>
-          <option value="all">All (HTML + JSON + PDF)</option>
+          <option value="all">All (HTML + JSON + SARIF + PDF)</option>
         </select>
       </div>
     </div>

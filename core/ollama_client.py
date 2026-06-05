@@ -85,6 +85,8 @@ class OllamaClient:
                     if isinstance(text, str) and text.strip():
                         return text
             return ""
+        except _urlerr.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
             raise ConnectionError(
                 f"Ollama request failed at {self.base_url}: {exc.code} {body}"
             ) from exc

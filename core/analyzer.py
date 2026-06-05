@@ -15,16 +15,33 @@ MAX_LINES_PER_CHUNK = 100
 CHUNK_OVERLAP = 10
 
 
-def _build_prompt(path: Path, language: str, lines: list[str], start_line: int = 0) -> str:
+def _build_prompt(
+    path: Path,
+    language: str,
+    lines: list[str],
+    start_line: int = 0,
+    project_context: str = "",
+) -> str:
     numbered = "\n".join(
         f"{start_line + i + 1:>4} | {l}"
         for i, l in enumerate(lines)
     )
+    context_block = ""
+    if project_context:
+        context_block = textwrap.dedent(f"""
+            === PROJECT SECURITY CONTEXT ===
+
+            {project_context}
+
+            === END PROJECT SECURITY CONTEXT ===
+
+        """)
     return textwrap.dedent(f"""
         FILE PATH : {path}
         LANGUAGE  : {language}
         LINES     : {len(lines)}
 
+        {context_block}
         === FULL SOURCE CODE (with line numbers) ===
 
         {numbered}
@@ -32,6 +49,9 @@ def _build_prompt(path: Path, language: str, lines: list[str], start_line: int =
         === END OF FILE ===
 
         Perform a complete security audit of the entire file above.
+        Use the project security context to connect routes, inputs, auth checks,
+        sanitizers, config, and dangerous sinks across files. Only report a
+        finding when the current file or project context supports exploitability.
         Return ONLY a JSON array of findings. If clean, return [].
     """).strip()
 
@@ -102,13 +122,28 @@ def _parse_response(raw: str, lines: list[str], language: str,
             },
             "explanation":  str(item.get("explanation", "")),
             "remediation":  str(item.get("remediation", "")),
+            "evidence": {
+                "input_source": str(item.get("input_source", "")),
+                "sink":         str(item.get("sink", "")),
+                "missing_control": str(item.get("missing_control", "")),
+                "reason":       str(item.get("evidence", "")),
+            },
+            "validation": {
+                "status": "unvalidated",
+                "notes": "",
+            },
             "source":       "ai",
         })
 
     return findings
 
 
-def analyse_file(path: Path, ollama: OllamaClient, system_prompt: str) -> list[dict]:
+def analyse_file(
+    path: Path,
+    ollama: OllamaClient,
+    system_prompt: str,
+    project_context: str = "",
+) -> list[dict]:
     """
     Read the full file, send it to Ollama in chunks if needed, and return a list of findings.
     Returns [] if the file is empty, unreadable, or Ollama fails.
@@ -124,7 +159,7 @@ def analyse_file(path: Path, ollama: OllamaClient, system_prompt: str) -> list[d
 
     findings: list[dict] = []
     if len(lines) <= MAX_LINES_PER_CHUNK:
-        prompt = _build_prompt(path, language, lines, 0)
+        prompt = _build_prompt(path, language, lines, 0, project_context)
         try:
             raw = ollama.generate(prompt, system=system_prompt)
         except Exception as exc:
@@ -133,7 +168,13 @@ def analyse_file(path: Path, ollama: OllamaClient, system_prompt: str) -> list[d
     else:
         for chunk_start in range(0, len(lines), MAX_LINES_PER_CHUNK - CHUNK_OVERLAP):
             chunk_lines = lines[chunk_start:chunk_start + MAX_LINES_PER_CHUNK]
-            prompt = _build_prompt(path, language, chunk_lines, chunk_start)
+            prompt = _build_prompt(
+                path,
+                language,
+                chunk_lines,
+                chunk_start,
+                project_context,
+            )
             try:
                 raw = ollama.generate(prompt, system=system_prompt)
             except Exception as exc:

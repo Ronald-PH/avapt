@@ -54,6 +54,8 @@
     <div class="download-group">
       <a class="btn-dl btn-html" href="/download/html/{{ job_id }}">HTML</a>
       <a class="btn-dl btn-json" href="/download/json/{{ job_id }}">JSON</a>
+      <a class="btn-dl btn-json" href="/download/sarif/{{ job_id }}">SARIF</a>
+      <a class="btn-dl btn-json" href="/download/baseline/{{ job_id }}">Baseline</a>
       {% if has_pdf %}
       <a class="btn-dl btn-pdf"  href="/download/pdf/{{ job_id }}">PDF</a>
       {% endif %}
@@ -71,6 +73,8 @@
     <div class="mi"><span class="mi-l">Code Files</span>  <span class="mi-v">{{ result.meta.code_files }}</span></div>
     <div class="mi"><span class="mi-l">Languages</span>   <span class="mi-v">{{ result.meta.languages | join(', ') or 'N/A' }}</span></div>
     <div class="mi"><span class="mi-l">Model</span>        <span class="mi-v">{{ result.meta.ai_model }}</span></div>
+    <div class="mi"><span class="mi-l">Profile</span>      <span class="mi-v">{{ result.meta.scan_profile|default('balanced') }}</span></div>
+    <div class="mi"><span class="mi-l">Validated</span>    <span class="mi-v">{{ 'Yes' if result.meta.validation else 'No' }}</span></div>
     <div class="mi"><span class="mi-l">Findings</span>    <span class="mi-v">{{ result.findings | length }}</span></div>
   </div>
 
@@ -111,7 +115,8 @@
       <strong style="color:var(--ai)">{{ result.meta.ai_model }}</strong>.
       {{ result.meta.code_files }} code file(s)
       ({{ result.meta.languages | join(', ') or 'unknown' }}) were analysed in full
-      — the complete source sent to the AI for semantic reasoning.</p>
+      — the complete source sent to the AI for semantic reasoning.
+      {% if result.meta.baseline_suppressed %}{{ result.meta.baseline_suppressed }} baseline finding(s) were suppressed.{% endif %}</p>
       <br>
       <p>Overall risk: <strong class="risk-pill risk-{{ risk }}">{{ risk }}</strong> &mdash;
       {{ total }} total findings
@@ -177,6 +182,17 @@
                   {% if f.attack_path.prerequisites %}
                   <ul>{% for p in f.attack_path.prerequisites %}<li>{{ p }}</li>{% endfor %}</ul>
                   {% endif %}
+                </div>
+                <div class="detail-section">
+                  <h4>Evidence</h4>
+                  {% set ev = f.get('evidence', {}) %}
+                  <p><strong>Source:</strong> {{ ev.get('input_source') or '-' }}</p>
+                  <p><strong>Sink:</strong> {{ ev.get('sink') or '-' }}</p>
+                  <p><strong>Missing Control:</strong> {{ ev.get('missing_control') or '-' }}</p>
+                  <p>{{ ev.get('reason') or '' }}</p>
+                  {% set val = f.get('validation', {}) %}
+                  <p><strong>Validation:</strong> {{ val.get('status', 'unvalidated') }}{% if val.get('notes') %} - {{ val.get('notes') }}{% endif %}</p>
+                  <p><strong>Fingerprint:</strong><br><code>{{ f.get('fingerprint', '') }}</code></p>
                 </div>
                 <div class="detail-section">
                   <h4>Remediation</h4>

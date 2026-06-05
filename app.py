@@ -9,14 +9,18 @@ import os
 
 from flask import (
     Flask, render_template, request, jsonify,
-    send_file, redirect, url_for, stream_with_context, Response,
+    send_file,
 )
 
-from core.config        import VERSION, DEFAULT_MODEL, DEFAULT_OLLAMA
+from core.config        import (
+    VERSION, DEFAULT_MODEL, DEFAULT_OLLAMA, MAX_AI_WORKERS,
+    SCAN_PROFILES, DEFAULT_SCAN_PROFILE,
+)
 from core.ollama_client import OllamaClient
 from core.scanner       import run_scan
 from core.report_html   import build_html
 from core.report_pdf    import build_pdf, HAS_REPORTLAB
+from core.report_sarif  import build_sarif
 
 # Get the directory where app.py is located
 APP_DIR = Path(__file__).resolve().parent
@@ -26,7 +30,7 @@ STATIC_DIR = APP_DIR / 'static'
 app = Flask(__name__, 
             template_folder=str(TEMPLATE_DIR),
             static_folder=str(STATIC_DIR))
-app.secret_key = "avapt-dev-secret"
+app.secret_key = os.environ.get("AVAPT_SECRET_KEY", "avapt-dev-secret")
 
 # Add custom Jinja2 filters
 @app.template_filter('basename')
@@ -67,6 +71,8 @@ def index():
         default_url  = DEFAULT_OLLAMA,
         models       = models,
         has_pdf      = True,
+        profiles     = SCAN_PROFILES,
+        default_profile = DEFAULT_SCAN_PROFILE,
     )
 
 
@@ -77,7 +83,14 @@ def start_scan():
     target     = request.form.get("target", "").strip()
     model      = request.form.get("model",  DEFAULT_MODEL).strip()
     ollama_url = request.form.get("ollama_url", DEFAULT_OLLAMA).strip()
-    workers    = int(request.form.get("workers", 3))
+    profile    = request.form.get("profile", DEFAULT_SCAN_PROFILE).strip()
+    baseline_path = request.form.get("baseline", "").strip()
+    workers_raw = request.form.get("workers", str(MAX_AI_WORKERS)).strip()
+    try:
+        workers = int(workers_raw)
+    except ValueError:
+        return jsonify({"error": "Workers must be a number"}), 400
+    workers = max(1, min(workers, MAX_AI_WORKERS))
 
     if not target:
         return jsonify({"error": "No target path provided"}), 400
@@ -104,7 +117,15 @@ def start_scan():
                         "current_file": filename,
                     }
 
-            result = run_scan(target, prompt, ollama, workers=workers, progress_cb=_cb)
+            result = run_scan(
+                target,
+                prompt,
+                ollama,
+                workers=workers,
+                profile=profile,
+                baseline_path=baseline_path,
+                progress_cb=_cb,
+            )
             with JOBS_LOCK:
                 JOBS[job_id]["status"] = "done"
                 JOBS[job_id]["result"] = result
@@ -212,6 +233,45 @@ def download_pdf(job_id: str):
         mimetype             = "application/pdf",
         as_attachment        = True,
         download_name        = f"avapt_report_{job_id[:8]}.pdf",
+    )
+
+
+@app.route("/download/sarif/<job_id>")
+def download_sarif(job_id: str):
+    with JOBS_LOCK:
+        job = JOBS.get(job_id)
+    if not job or not job["result"]:
+        return "Not found", 404
+    sarif_bytes = build_sarif(job["result"]).encode("utf-8")
+    return send_file(
+        io.BytesIO(sarif_bytes),
+        mimetype             = "application/sarif+json",
+        as_attachment        = True,
+        download_name        = f"avapt_report_{job_id[:8]}.sarif",
+    )
+
+
+@app.route("/download/baseline/<job_id>")
+def download_baseline(job_id: str):
+    with JOBS_LOCK:
+        job = JOBS.get(job_id)
+    if not job or not job["result"]:
+        return "Not found", 404
+    baseline = {
+        "tool": "avapt",
+        "created_from": job_id,
+        "fingerprints": [
+            f.get("fingerprint")
+            for f in job["result"].get("findings", [])
+            if f.get("fingerprint")
+        ],
+    }
+    baseline_bytes = json.dumps(baseline, indent=2).encode("utf-8")
+    return send_file(
+        io.BytesIO(baseline_bytes),
+        mimetype             = "application/json",
+        as_attachment        = True,
+        download_name        = f"avapt_baseline_{job_id[:8]}.json",
     )
 
 

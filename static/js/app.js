@@ -9,6 +9,8 @@ async function startScan() {
   const model      = document.getElementById('model').value;
   const ollama_url = document.getElementById('ollama_url').value.trim();
   const workers    = document.getElementById('workers').value;
+  const profile    = document.getElementById('profile').value;
+  const baseline   = document.getElementById('baseline').value.trim();
 
   if (!target) {
     alert('Please enter a target path.');
@@ -29,6 +31,8 @@ async function startScan() {
   body.append('model',      model);
   body.append('ollama_url', ollama_url);
   body.append('workers',    workers);
+  body.append('profile',    profile);
+  body.append('baseline',   baseline);
 
   try {
     const res  = await fetch('/scan', { method:'POST', body });

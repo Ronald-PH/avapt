@@ -7,6 +7,31 @@ AI_NUM_PREDICT   = 4096
 DEFAULT_MODEL    = "deepseek-r1:7b"
 DEFAULT_OLLAMA   = "http://localhost:11434"
 HAS_REPORTLAB = True
+
+SCAN_PROFILES = {
+    "fast": {
+        "label": "Fast",
+        "use_context": True,
+        "prefilter": True,
+        "validate": False,
+        "osv": False,
+    },
+    "balanced": {
+        "label": "Balanced",
+        "use_context": True,
+        "prefilter": False,
+        "validate": True,
+        "osv": False,
+    },
+    "deep": {
+        "label": "Deep",
+        "use_context": True,
+        "prefilter": False,
+        "validate": True,
+        "osv": True,
+    },
+}
+DEFAULT_SCAN_PROFILE = "balanced"
 LANG_MAP = {
     ".py":"Python",    ".js":"JavaScript", ".ts":"TypeScript",
     ".jsx":"JavaScript",".tsx":"TypeScript",".php":"PHP",

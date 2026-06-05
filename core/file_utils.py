@@ -59,13 +59,25 @@ def dedup_findings(findings: list[dict]) -> list[dict]:
     """Remove duplicate findings by type + file + line."""
     seen, out = set(), []
     for f in findings:
-        key = hashlib.md5(
-            f"{f['type']}:{f['file']}:{f['location']['from_line']}".encode()
-        ).hexdigest()
+        key = finding_fingerprint(f)
         if key not in seen:
             seen.add(key)
+            f.setdefault("fingerprint", key)
             out.append(f)
     return out
+
+
+def finding_fingerprint(finding: dict) -> str:
+    """Stable identifier used for deduplication, baselines, and SARIF partial fingerprints."""
+    location = finding.get("location", {})
+    raw = ":".join([
+        str(finding.get("type", "")),
+        str(finding.get("file", "")),
+        str(location.get("from_line", "")),
+        str(finding.get("cwe", "")),
+        str(finding.get("source", "ai")),
+    ])
+    return hashlib.sha256(raw.encode("utf-8", errors="replace")).hexdigest()[:24]
 
 
 def normalise_severity(raw) -> str:

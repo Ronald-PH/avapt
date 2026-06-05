@@ -1,3 +1,5 @@
 .venv/
 test/
 core/__pycache__/
+__pycache__/
+*.pyc
